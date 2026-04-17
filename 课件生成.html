@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📄 文件提取 · 自动生成文档</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            main: '#165DFF',
+            light: '#E8F3FF',
+          },
+        },
+      }
+    }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #fff;
+    }
+  </style>
+</head>
+
+<body class="text-gray-800">
+  <!-- 导航 -->
+  <header class="sticky top-0 bg-white shadow-sm z-50">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl text-main">📄</span>
+        <h1 class="text-xl font-bold text-main">DocBuilder</h1>
+      </div>
+      <nav class="hidden sm:flex gap-6 text-sm">
+        <a class="hover:text-main">首页</a>
+        <a class="hover:text-main">功能</a>
+        <a class="hover:text-main">使用指南</a>
+        <a class="hover:text-main">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 主体 -->
+  <main class="max-w-5xl mx-auto px-4 py-12">
+    <!-- 标题区 -->
+    <section class="text-center mb-12">
+      <h2 class="text-[clamp(1.6rem,4vw,2.4rem)] font-bold mb-3">
+        上传文件 <span class="text-main">自动生成结构化文档</span> ✨
+      </h2>
+      <p class="text-gray-500 max-w-xl mx-auto">
+        支持 PDF / Word / TXT / 图片，一键提取内容、自动排版、导出干净文档
+      </p>
+    </section>
+
+    <!-- 上传区域 -->
+    <section class="mb-14">
+      <div id="dropArea" class="border-2 border-dashed border-main/30 rounded-2xl p-8 text-center bg-light/40 hover:bg-light transition">
+        <div class="w-16 h-16 bg-main/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-2xl text-main">📂</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">点击或拖拽文件到此处</h3>
+        <p class="text-sm text-gray-500 mb-6">支持 PDF、DOCX、TXT、JPG、PNG</p>
+        <label class="bg-main text-white px-6 py-2.5 rounded-full inline-block cursor-pointer hover:bg-main/90">
+          📤 选择文件
+          <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png">
+        </label>
+      </div>
+    </section>
+
+    <!-- 功能卡片 -->
+    <section class="mb-16">
+      <h3 class="text-xl font-bold text-center mb-8">🎯 核心功能</h3>
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div class="bg-white border rounded-2xl p-6 shadow-sm">
+          <div class="text-2xl mb-3">📝</div>
+          <h4 class="font-semibold mb-1">多格式解析</h4>
+          <p class="text-sm text-gray-500">自动识别文本、标题、列表、表格</p>
+        </div>
+        <div class="bg-white border rounded-2xl p-6 shadow-sm">
+          <div class="text-2xl mb-3">🧠</div>
+          <h4 class="font-semibold mb-1">AI 智能总结</h4>
+          <p class="text-sm text-gray-500">自动提取要点、生成目录与结构化内容</p>
+        </div>
+        <div class="bg-white border rounded-2xl p-6 shadow-sm">
+          <div class="text-2xl mb-3">📤</div>
+          <h4 class="font-semibold mb-1">一键导出</h4>
+          <p class="text-sm text-gray-500">支持导出 Markdown / PDF / 纯文本</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 使用流程 -->
+    <section class="mb-16">
+      <h3 class="text-xl font-bold text-center mb-8">🚀 三步使用</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+        <div>
+          <div class="w-10 h-10 rounded-full bg-main text-white flex items-center justify-center mx-auto mb-3">1</div>
+          <p class="font-medium">上传文件</p>
+        </div>
+        <div>
+          <div class="w-10 h-10 rounded-full bg-main text-white flex items-center justify-center mx-auto mb-3">2</div>
+          <p class="font-medium">自动解析生成</p>
+        </div>
+        <div>
+          <div class="w-10 h-10 rounded-full bg-main text-white flex items-center justify-center mx-auto mb-3">3</div>
+          <p class="font-medium">预览并下载</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 演示预览 -->
+    <section class="mb-16">
+      <h3 class="text-xl font-bold text-center mb-8">📄 生成效果预览</h3>
+      <div class="border rounded-2xl overflow-hidden bg-white">
+        <div class="bg-gray-50 p-4 border-b flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="text-main">📄</span>
+            <span class="font-medium">自动生成文档示例</span>
+          </div>
+          <button class="text-sm px-3 py-1 bg-main/10 text-main rounded-full">💾 导出</button>
+        </div>
+        <div class="p-6 space-y-4">
+          <h4 class="font-bold text-lg">文档标题</h4>
+          <p class="text-gray-600">这里是自动提取的正文内容，系统会自动识别段落、标题、列表与重点信息。</p>
+          <div class="bg-light p-3 rounded-lg text-sm">
+            <p>【自动总结】</p>
+            <p>该文件包含 3 个核心要点、1 个表格、2 段重点内容，已完成结构化整理。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 按钮 -->
+    <section class="text-center">
+      <button class="bg-main hover:bg-main/90 text-white px-8 py-3 rounded-full font-medium">
+        🚀 立即开始使用
+      </button>
+    </section>
+  </main>
+
+  <!-- 底部 -->
+  <footer class="bg-gray-50 border-t py-8 mt-12">
+    <div class="max-w-5xl mx-auto px-4 text-center text-sm text-gray-500">
+      <p>© 2026 DocBuilder · 提取文件 · 自动生成文档</p>
+    </div>
+  </footer>
+
+  <!-- 交互脚本 -->
+  <script>
+    const area = document.getElementById('dropArea');
+    const input = document.getElementById('fileInput');
+
+    area.onclick = () => input.click();
+
+    // 拖拽
+    area.ondragover = (e) => {
+      e.preventDefault();
+      area.classList.add('border-main');
+    };
+    area.ondragleave = () => area.classList.remove('border-main');
+    area.ondrop = (e) => {
+      e.preventDefault();
+      area.classList.remove('border-main');
+      if (e.dataTransfer.files.length) {
+        alert('已接收文件：' + e.dataTransfer.files[0].name + '\n（前端演示，真实解析需对接接口）');
+      }
+    };
+
+    // 选择文件
+    input.onchange = () => {
+      if (input.files.length) {
+        alert('已选择：' + input.files[0].name + '\n演示版仅做展示，可对接后端实现解析');
+      }
+    };
+  </script>
+</body>
+</html>
