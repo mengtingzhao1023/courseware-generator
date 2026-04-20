@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📂 百度网盘提取 · 一键生成课程大纲</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#00B42A',
+            light: '#E8F3FF',
+            bg: '#F7F8FA',
+            baidu: '#2932E1',
+          },
+        },
+      }
+    }
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #F7F8FA;
+    }
+    .link-input {
+      transition: all 0.3s ease;
+    }
+    .link-input:focus {
+      box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+    }
+    .extract-btn {
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #165DFF 0%, #4080FF 100%);
+    }
+    .extract-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(22, 93, 255, 0.3);
+    }
+    .extract-btn:active {
+      transform: translateY(0);
+    }
+    .step-card {
+      transition: all 0.3s ease;
+    }
+    .step-card:hover {
+      transform: translateY(-4px);
+    }
+    .progress-ring {
+      transform: rotate(-90deg);
+    }
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.5s ease;
+    }
+    .folder-item {
+      transition: all 0.2s ease;
+    }
+    .folder-item:hover {
+      background: #E8F3FF;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.8); opacity: 0.5; }
+      100% { transform: scale(1.2); opacity: 0; }
+    }
+    .extracting::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, #165DFF, #00B42A, #165DFF);
+      background-size: 200% 200%;
+      animation: gradient 2s ease infinite;
+      z-index: -1;
+      opacity: 0.5;
+    }
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
+</head>
+
+<body class="text-gray-800">
+  <!-- 导航 -->
+  <header class="sticky top-0 bg-white shadow-sm z-50">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">📂</span>
+        <h1 class="text-xl font-bold text-primary">PanExtractor</h1>
+      </div>
+      <nav class="hidden sm:flex gap-6 text-sm items-center">
+        <a href="百度网盘提取.html" class="hover:text-primary font-medium text-primary">提取大纲</a>
+        <a href="文档中心.html" class="hover:text-primary">文档中心</a>
+        <a href="使用指南.html" class="hover:text-primary">使用指南</a>
+        <a href="历史记录.html" class="hover:text-primary">历史记录</a>
+        <a href="赵梦婷AI产品方向简历.pdf" download class="px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition flex items-center gap-1">
+          <span>📄</span>
+          <span>下载简历</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 主体 -->
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 标题区 -->
+    <section class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-baidu/10 text-baidu rounded-full text-sm mb-4">
+        <span>🔗</span>
+        <span>支持百度网盘文件夹链接</span>
+      </div>
+      <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold mb-3">
+        粘贴网盘链接 <span class="text-primary">一键提取课程大纲</span> ✨
+      </h2>
+      <p class="text-gray-500 max-w-xl mx-auto">
+        自动解析百度网盘视频文件夹，智能识别视频内容，生成结构化课程大纲
+      </p>
+    </section>
+
+    <!-- 链接输入区 -->
+    <section class="mb-10">
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="flex flex-col gap-4">
+          <!-- 输入框 -->
+          <div class="relative">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <span class="text-xl">🔗</span>
+            </div>
+            <input 
+              type="text" 
+              id="panLinkInput"
+              class="link-input w-full pl-12 pr-32 py-4 border-2 border-gray-200 rounded-xl text-base focus:border-primary focus:outline-none"
+              placeholder="请粘贴百度网盘文件夹链接，例如：https://pan.baidu.com/s/1xxxxx"
+            />
+            <button 
+              onclick="pasteLink()"
+              class="absolute right-4 top-1/2 -translate-y-1/2 px-4 py-2 text-sm text-primary hover:bg-primary/10 rounded-lg transition"
+            >
+              📋 粘贴
+            </button>
+          </div>
+          
+          <!-- 提取码输入 -->
+          <div class="flex gap-4">
+            <div class="flex-1 relative">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                <span class="text-lg">🔐</span>
+              </div>
+              <input 
+                type="text" 
+                id="extractCode"
+                class="link-input w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xl text-base focus:border-primary focus:outline-none"
+                placeholder="提取码（如有）"
+                maxlength="4"
+              />
+            </div>
+            <button 
+              id="extractBtn"
+              onclick="startExtract()"
+              class="extract-btn relative px-8 py-3 text-white rounded-xl font-medium flex items-center gap-2 min-w-[160px] justify-center"
+            >
+              <span id="btnIcon">⚡</span>
+              <span id="btnText">一键提取</span>
+            </button>
+          </div>
+          
+          <!-- 提示信息 -->
+          <div class="flex items-center gap-4 text-sm text-gray-500">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 text-primary rounded" checked />
+              <span>自动识别视频章节</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 text-primary rounded" checked />
+              <span>生成时间戳索引</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 text-primary rounded" />
+              <span>提取视频字幕</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 使用步骤 -->
+    <section class="mb-10">
+      <h3 class="text-lg font-bold text-center mb-6">🚀 三步完成提取</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="step-card bg-white rounded-2xl p-6 text-center border">
+          <div class="w-14 h-14 bg-baidu/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl">📋</span>
+          </div>
+          <div class="w-8 h-8 bg-baidu text-white rounded-full flex items-center justify-center mx-auto -mt-10 mb-3 text-sm font-bold">1</div>
+          <h4 class="font-semibold mb-2">复制网盘链接</h4>
+          <p class="text-sm text-gray-500">在百度网盘中复制视频文件夹的分享链接</p>
+        </div>
+        <div class="step-card bg-white rounded-2xl p-6 text-center border">
+          <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl">⚡</span>
+          </div>
+          <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mx-auto -mt-10 mb-3 text-sm font-bold">2</div>
+          <h4 class="font-semibold mb-2">一键提取大纲</h4>
+          <p class="text-sm text-gray-500">粘贴链接后点击提取，系统自动解析视频内容</p>
+        </div>
+        <div class="step-card bg-white rounded-2xl p-6 text-center border">
+          <div class="w-14 h-14 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl">📥</span>
+          </div>
+          <div class="w-8 h-8 bg-secondary text-white rounded-full flex items-center justify-center mx-auto -mt-10 mb-3 text-sm font-bold">3</div>
+          <h4 class="font-semibold mb-2">下载整理文档</h4>
+          <p class="text-sm text-gray-500">获取结构化大纲，支持多种格式导出</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 提取进度/结果区（默认隐藏） -->
+    <section id="resultSection" class="hidden mb-10">
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-bold flex items-center gap-2">
+            <span>📊</span>
+            <span>提取结果</span>
+          </h3>
+          <span class="text-sm text-gray-500" id="resultStatus">正在解析...</span>
+        </div>
+        
+        <!-- 进度条 -->
+        <div id="progressArea" class="mb-6">
+          <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600">提取进度</span>
+            <span class="text-primary font-medium" id="progressText">0%</span>
+          </div>
+          <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p class="text-xs text-gray-400 mt-2" id="progressDetail">正在连接百度网盘...</p>
+        </div>
+
+        <!-- 文件夹内容预览 -->
+        <div id="folderPreview" class="hidden">
+          <div class="border rounded-xl overflow-hidden">
+            <div class="bg-gray-50 p-4 border-b flex items-center gap-2">
+              <span class="text-baidu text-xl">📁</span>
+              <span class="font-medium">Python数据分析实战课程</span>
+              <span class="text-xs text-gray-400 ml-auto">共 12 个视频文件</span>
+            </div>
+            <div class="max-h-64 overflow-y-auto" id="fileList">
+              <!-- 文件列表项 -->
+            </div>
+          </div>
+          
+          <!-- 操作按钮 -->
+          <div class="flex gap-4 mt-6">
+            <button onclick="goToDocs()" class="flex-1 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
+              <span>📄</span>
+              <span>查看生成的大纲</span>
+            </button>
+            <button onclick="downloadOutline()" class="flex-1 border-2 border-primary text-primary hover:bg-primary/10 py-3 rounded-xl font-medium flex items-center justify-center gap-2">
+              <span>💾</span>
+              <span>下载大纲文件</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 功能特点 -->
+    <section class="mb-10">
+      <h3 class="text-lg font-bold text-center mb-6">✨ 功能特点</h3>
+      <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-5 text-center border">
+          <div class="text-3xl mb-3">🎯</div>
+          <h4 class="font-semibold text-sm mb-1">智能识别</h4>
+          <p class="text-xs text-gray-500">自动识别视频标题、章节结构</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 text-center border">
+          <div class="text-3xl mb-3">⚡</div>
+          <h4 class="font-semibold text-sm mb-1">快速提取</h4>
+          <p class="text-xs text-gray-500">秒级解析网盘文件夹内容</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 text-center border">
+          <div class="text-3xl mb-3">📝</div>
+          <h4 class="font-semibold text-sm mb-1">结构化输出</h4>
+          <p class="text-xs text-gray-500">生成层级清晰的课程大纲</p>
+        </div>
+        <div class="bg-white rounded-xl p-5 text-center border">
+          <div class="text-3xl mb-3">📤</div>
+          <h4 class="font-semibold text-sm mb-1">多格式导出</h4>
+          <p class="text-xs text-gray-500">支持 Markdown / PDF / Word</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 支持的链接格式 -->
+    <section class="mb-10">
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <span>💡</span>
+          <span>支持的链接格式</span>
+        </h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <span class="text-green-500">✓</span>
+            <code class="text-gray-600">https://pan.baidu.com/s/1xxxxx</code>
+            <span class="text-gray-400 ml-auto">标准分享链接</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <span class="text-green-500">✓</span>
+            <code class="text-gray-600">https://yun.139.com/xxxx</code>
+            <span class="text-gray-400 ml-auto">中国移动云盘</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <span class="text-green-500">✓</span>
+            <code class="text-gray-600">https://www.aliyundrive.com/xxxx</code>
+            <span class="text-gray-400 ml-auto">阿里云盘</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部 -->
+  <footer class="bg-white border-t py-8 mt-12">
+    <div class="max-w-5xl mx-auto px-4 text-center text-sm text-gray-500">
+      <p>© 2026 PanExtractor · 百度网盘视频提取 · 智能大纲生成</p>
+      <p class="mt-2 text-xs">仅支持提取公开分享的视频文件夹内容</p>
+    </div>
+  </footer>
+
+  <!-- 交互脚本 -->
+  <script>
+    // 粘贴链接
+    async function pasteLink() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('panLinkInput').value = text;
+      } catch (err) {
+        alert('无法自动粘贴，请手动粘贴链接');
+      }
+    }
+
+    // 开始提取
+    function startExtract() {
+      const link = document.getElementById('panLinkInput').value.trim();
+      
+      if (!link) {
+        alert('请先粘贴百度网盘链接');
+        return;
+      }
+      
+      if (!link.includes('pan.baidu.com') && !link.includes('yun.139.com') && !link.includes('aliyundrive.com')) {
+        alert('请输入有效的网盘链接');
+        return;
+      }
+
+      // 显示结果区域
+      const resultSection = document.getElementById('resultSection');
+      resultSection.classList.remove('hidden');
+      
+      // 滚动到结果区域
+      resultSection.scrollIntoView({ behavior: 'smooth' });
+      
+      // 更新按钮状态
+      const btn = document.getElementById('extractBtn');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnText = document.getElementById('btnText');
+      
+      btn.classList.add('extracting');
+      btnIcon.textContent = '🔄';
+      btnText.textContent = '提取中...';
+      btn.disabled = true;
+
+      // 模拟提取进度
+      let progress = 0;
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const progressDetail = document.getElementById('progressDetail');
+      
+      const steps = [
+        { p: 10, t: '正在连接百度网盘...' },
+        { p: 25, t: '验证链接有效性...' },
+        { p: 40, t: '获取文件夹内容...' },
+        { p: 60, t: '识别视频文件...' },
+        { p: 75, t: '分析视频标题结构...' },
+        { p: 90, t: '生成课程大纲...' },
+        { p: 100, t: '提取完成！' }
+      ];
+      
+      let stepIndex = 0;
+      const interval = setInterval(() => {
+        if (stepIndex < steps.length) {
+          progress = steps[stepIndex].p;
+          progressBar.style.width = progress + '%';
+          progressText.textContent = progress + '%';
+          progressDetail.textContent = steps[stepIndex].t;
+          stepIndex++;
+        } else {
+          clearInterval(interval);
+          showResult();
+        }
+      }, 600);
+    }
+
+    // 显示提取结果
+    function showResult() {
+      const progressArea = document.getElementById('progressArea');
+      const folderPreview = document.getElementById('folderPreview');
+      const resultStatus = document.getElementById('resultStatus');
+      const btn = document.getElementById('extractBtn');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnText = document.getElementById('btnText');
+      
+      // 隐藏进度条，显示结果
+      progressArea.classList.add('hidden');
+      folderPreview.classList.remove('hidden');
+      resultStatus.textContent = '提取成功';
+      resultStatus.className = 'text-sm text-green-500';
+      
+      // 恢复按钮
+      btn.classList.remove('extracting');
+      btnIcon.textContent = '⚡';
+      btnText.textContent = '一键提取';
+      btn.disabled = false;
+      
+      // 生成文件列表
+      generateFileList();
+    }
+
+    // 生成文件列表
+    function generateFileList() {
+      const fileList = document.getElementById('fileList');
+      const files = [
+        { name: '01-课程介绍与环境搭建.mp4', size: '156MB', duration: '15:30', status: 'done' },
+        { name: '02-Python基础语法回顾.mp4', size: '234MB', duration: '22:15', status: 'done' },
+        { name: '03-NumPy数值计算基础.mp4', size: '189MB', duration: '18:45', status: 'done' },
+        { name: '04-Pandas数据处理入门.mp4', size: '267MB', duration: '25:20', status: 'done' },
+        { name: '05-数据清洗与预处理.mp4', size: '198MB', duration: '19:50', status: 'done' },
+        { name: '06-数据可视化基础.mp4', size: '223MB', duration: '21:30', status: 'done' },
+        { name: '07-Matplotlib绘图详解.mp4', size: '245MB', duration: '24:15', status: 'done' },
+        { name: '08-Seaborn高级可视化.mp4', size: '212MB', duration: '20:45', status: 'done' },
+        { name: '09-实战项目：销售数据分析.mp4', size: '312MB', duration: '32:10', status: 'done' },
+        { name: '10-实战项目：用户行为分析.mp4', size: '289MB', duration: '28:40', status: 'pending' },
+        { name: '11-机器学习入门.mp4', size: '0MB', duration: '待提取', status: 'pending' },
+        { name: '12-课程总结与进阶方向.mp4', size: '0MB', duration: '待提取', status: 'pending' }
+      ];
+      
+      fileList.innerHTML = files.map((file, index) => `
+        <div class="folder-item flex items-center gap-3 p-3 ${index !== files.length - 1 ? 'border-b' : ''}">
+          <span class="text-xl">${file.status === 'done' ? '🎬' : '⏳'}</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate">${file.name}</div>
+            <div class="text-xs text-gray-400 flex gap-3 mt-0.5">
+              <span>⏱ ${file.duration}</span>
+              <span>💾 ${file.size}</span>
+            </div>
+          </div>
+          <span class="text-xs px-2 py-1 rounded ${file.status === 'done' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}">
+            ${file.status === 'done' ? '已解析' : '待提取'}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    // 跳转到文档中心
+    function goToDocs() {
+      window.location.href = '课程文档下载.html';
+    }
+
+    // 下载大纲
+    function downloadOutline() {
+      alert('📥 正在生成大纲文件...\n\n包含内容：\n- 课程结构大纲.md\n- 视频时间戳索引.txt\n- 知识点清单.json\n\n（演示功能）');
+    }
+  </script>
+</body>
+</html>
